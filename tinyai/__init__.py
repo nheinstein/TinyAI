@@ -11,12 +11,10 @@ __author__ = "TinyAI Team"
 from .train import main
 from .models import LLMModel, VisionModel
 from .training import Trainer
-from .data import DataLoader
 
 __all__ = [
     "main",
     "LLMModel", 
     "VisionModel",
     "Trainer",
-    "DataLoader",
-] 
+]
