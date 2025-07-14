@@ -1,0 +1,14 @@
+# Default Logging Configuration
+# This configuration defines the default logging parameters
+
+# Logging level
+level: "INFO"
+
+# Wandb configuration
+wandb: false
+project_name: "tiny-ai-trainer"
+run_name: null  # Auto-generated if null
+tags: []
+
+# Logging intervals
+log_interval: 100 

@@ -1,0 +1,13 @@
+# Vision Model Configuration
+# This configuration defines a ResNet-style CNN for image classification
+
+type: "vision"
+
+# Model architecture parameters
+num_classes: 10
+in_channels: 3
+hidden_size: 64
+num_blocks: [2, 2, 2, 2]  # ResNet-18 style
+
+# Image parameters
+image_size: 224 

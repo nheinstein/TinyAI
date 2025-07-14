@@ -1,0 +1,22 @@
+# Main configuration file for Tiny AI Model Trainer
+# This file defines the default configuration and references other config files
+
+defaults:
+  - model: llm
+  - training: default
+  - data: default
+  - logging: default
+  - _self_
+
+# Override any configuration here
+# model:
+#   type: "vision"
+#   num_classes: 10
+
+# training:
+#   batch_size: 32
+#   learning_rate: 1e-4
+
+# logging:
+#   wandb: true
+#   project_name: "tiny-ai-experiment" 

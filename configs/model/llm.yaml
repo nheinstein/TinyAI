@@ -1,0 +1,22 @@
+# LLM Model Configuration
+# This configuration defines a transformer-based language model
+
+type: "transformer"
+
+# Model architecture parameters
+vocab_size: 1000
+hidden_size: 256
+num_layers: 6
+num_heads: 8
+max_length: 512
+
+# Optional parameters
+ffn_size: 1024  # 4 * hidden_size
+attention_dropout: 0.1
+ffn_dropout: 0.1
+
+# Special tokens
+eos_token_id: 2
+bos_token_id: 3
+pad_token_id: 1
+unk_token_id: 0 

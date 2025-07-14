@@ -1,0 +1,23 @@
+# Default Data Configuration
+# This configuration defines the default data loading parameters
+
+type: "text"  # or "image"
+
+# Text data parameters (for LLMs)
+train_path: null  # Use synthetic data if null
+val_path: null
+max_length: 128
+stride: 64
+vocab_size: 1000
+
+# Image data parameters (for vision models)
+image_size: 224
+num_classes: 10
+label_file: null
+
+# Data loader parameters
+num_workers: 0
+pin_memory: true
+
+# Synthetic data parameters (used when train_path is null)
+num_examples: 1000 
