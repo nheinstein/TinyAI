@@ -64,13 +64,12 @@ class Trainer:
         self.global_step = 0
         self.best_val_loss = float('inf')
         
+        # Mixed precision training
+        self.use_amp = config.get('use_amp', False)
+        
         # Log model info
         self.logger.info(f"Model parameters: {model.get_num_parameters():,}")
         self.logger.info(f"Trainable parameters: {model.get_trainable_parameters():,}")
-        if self.use_amp:
-            self.logger.info("Mixed precision training enabled")
-        else:
-            self.logger.info("Standard precision training")
         if self.use_amp:
             self.logger.info("Mixed precision training enabled")
         else:
@@ -80,7 +79,7 @@ class Trainer:
         """Main training loop."""
         self.logger.info("Starting training...")
         
-        for epoch in range(self.config.num_epochs):
+        for epoch in range(self.config.get('num_epochs', 10)):
             self.current_epoch = epoch
             
             # Training phase
@@ -99,11 +98,11 @@ class Trainer:
             # Save best model
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
-                if self.config.save_best:
-                    self.save_model(self.config.best_model_path)
+                if self.config.get('save_best', False):
+                    self.save_model(self.config.get('best_model_path', 'best_model.pt'))
             
             # Save checkpoint
-            if self.config.save_checkpoints and (epoch + 1) % self.config.checkpoint_interval == 0:
+            if self.config.get('save_checkpoints', False) and (epoch + 1) % self.config.get('checkpoint_interval', 1) == 0:
                 self.save_checkpoint(f"checkpoint_epoch_{epoch + 1}.pt")
         
         self.logger.info("Training completed!")
@@ -126,15 +125,30 @@ class Trainer:
             
             # Forward pass
             self.optimizer.zero_grad()
-            outputs = self.model(**batch)
+
+            # Separate inputs from labels
+            labels = batch.pop('labels', None)
+            if labels is None:
+                labels = batch.pop('label', None)
+            
+            # Forward pass based on model type
+            if 'input_ids' in batch:
+                # LLM model
+                outputs = self.model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
+            elif 'image' in batch:
+                # Vision model
+                outputs = self.model(image=batch['image'])
+            else:
+                # Generic model call
+                outputs = self.model(**batch)
             
             # Compute loss
             if hasattr(self.model, 'get_loss'):
-                loss = self.model.get_loss(outputs, batch)
+                loss = self.model.get_loss(outputs, labels)
             else:
                 # Default loss computation
-                if 'labels' in batch:
-                    loss = nn.CrossEntropyLoss()(outputs, batch['labels'])
+                if labels is not None:
+                    loss = nn.CrossEntropyLoss()(outputs, labels)
                 else:
                     loss = outputs.mean()  # Fallback
             
@@ -142,8 +156,8 @@ class Trainer:
             loss.backward()
             
             # Gradient clipping
-            if self.config.gradient_clip > 0:
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.gradient_clip)
+            if self.config.get('gradient_clip', 0) > 0:
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.get('gradient_clip', 1.0))
             
             # Optimizer step
             self.optimizer.step()
@@ -159,7 +173,7 @@ class Trainer:
             })
             
             # Log to wandb
-            if wandb.run is not None and self.global_step % self.config.log_interval == 0:
+            if wandb.run is not None and self.global_step % self.config.get('log_interval', 10) == 0:
                 wandb.log({
                     'train/loss': loss.item(),
                     'train/learning_rate': self.optimizer.param_groups[0]['lr'],
@@ -181,28 +195,44 @@ class Trainer:
                 batch = self._move_batch_to_device(batch)
                 
                 # Forward pass
-                outputs = self.model(**batch)
+                # Separate inputs from labels
+                labels = batch.pop('labels', None)
+                if labels is None:
+                    labels = batch.pop('label', None)
+                if 'input_ids' in batch:
+                    # LLM model
+                    outputs = self.model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
+                elif 'image' in batch:
+                    # Vision model
+                    outputs = self.model(image=batch['image'])
+                else:
+                    # Generic model call
+                    outputs = self.model(**batch)
                 
                 # Compute loss
                 if hasattr(self.model, 'get_loss'):
-                    loss = self.model.get_loss(outputs, batch)
+                    loss = self.model.get_loss(outputs, labels)
                 else:
-                    if 'labels' in batch:
-                        loss = nn.CrossEntropyLoss()(outputs, batch['labels'])
+                    if labels is not None:
+                        loss = nn.CrossEntropyLoss()(outputs, labels)
                     else:
                         loss = outputs.mean()
                 
                 total_loss += loss.item()
                 
                 # Collect predictions and targets for metrics
-                if 'labels' in batch:
+                if labels is not None:
                     if hasattr(self.model, 'get_predictions'):
                         predictions = self.model.get_predictions(outputs)
                     else:
-                        predictions = torch.argmax(outputs, dim=1)
+                        # Handle different output shapes
+                        if len(outputs.shape) == 3:  # [batch, seq_len, vocab_size]
+                            predictions = torch.argmax(outputs, dim=-1)  # [batch, seq_len]
+                        else:  # [batch, num_classes]
+                            predictions = torch.argmax(outputs, dim=1)  # [batch]
                     
                     all_predictions.append(predictions.cpu())
-                    all_targets.append(batch['labels'].cpu())
+                    all_targets.append(labels.cpu())
         
         # Compute metrics
         val_loss = total_loss / len(self.val_loader)
