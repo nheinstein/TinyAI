@@ -1,6 +1,5 @@
 name: TinyAI CI
 
-
 on:
   push:
     branches: [main]
@@ -52,7 +51,7 @@ jobs:
 
       - name: Run Vision smoke test
         run: |
-          python -m tinyai.train model=vision training.num_epochs=1 training.batch_size=2 data.num_examples=10
+          python -m tinyai.train model=vision training.num_epochs=1 training.batch_size=2 data.num_examples=10 training.save_model=false training.save_best=false
 
       - name: Run Learning Rate Finder (LLM)
         run: |

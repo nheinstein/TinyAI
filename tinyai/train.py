@@ -68,8 +68,33 @@ def main(cfg: DictConfig) -> None:
 
         # Get data loaders
         logger.info("📊 Setting up data loaders...")
-        train_loader = get_data_loader(cfg.data, split="train")
-        val_loader = get_data_loader(cfg.data, split="val")
+        
+        # Auto-configure data type based on model type
+        data_config = OmegaConf.to_container(cfg.data, resolve=True)
+        if cfg.model.type.lower() in ["vision", "cnn", "resnet"]:
+            data_config["type"] = "image"
+            # Copy vision-specific parameters from model config if available
+            if hasattr(cfg.model, 'num_classes'):
+                data_config["num_classes"] = cfg.model.num_classes
+            if hasattr(cfg.model, 'image_size'):
+                data_config["image_size"] = cfg.model.image_size
+            logger.info("Auto-configured data type to 'image' for vision model")
+        elif cfg.model.type.lower() in ["llm", "transformer", "gpt"]:
+            data_config["type"] = "text"
+            # Copy LLM-specific parameters from model config if available
+            if hasattr(cfg.model, 'vocab_size'):
+                data_config["vocab_size"] = cfg.model.vocab_size
+            if hasattr(cfg.model, 'max_length'):
+                data_config["max_length"] = cfg.model.max_length
+            logger.info("Auto-configured data type to 'text' for LLM model")
+        
+        # Copy training parameters to data config
+        data_config["batch_size"] = cfg.training.batch_size
+        if hasattr(cfg.training, 'num_workers'):
+            data_config["num_workers"] = cfg.training.num_workers
+        
+        train_loader = get_data_loader(data_config, split="train")
+        val_loader = get_data_loader(data_config, split="val")
         logger.info(f"Train samples: {len(train_loader.dataset)}")
         logger.info(f"Val samples: {len(val_loader.dataset)}")
 
