@@ -67,6 +67,10 @@ class Trainer:
         # Mixed precision training
         self.use_amp = config.get('use_amp', False)
 
+        # Log data loader info
+        self.logger.info(f"Training data loader: {len(self.train_loader)} batches")
+        self.logger.info(f"Validation data loader: {len(self.val_loader)} batches")
+        
         # Log model info
         self.logger.info(f"Model parameters: {model.get_num_parameters():,}")
         self.logger.info(f"Trainable parameters: {model.get_trainable_parameters():,}")
@@ -74,6 +78,12 @@ class Trainer:
             self.logger.info("Mixed precision training enabled")
         else:
             self.logger.info("Standard precision training")
+        
+        # Validate data loaders
+        if len(self.train_loader) == 0:
+            raise ValueError("Training data loader is empty! Check your data configuration.")
+        if len(self.val_loader) == 0:
+            raise ValueError("Validation data loader is empty! Check your data configuration.")
 
     def train(self):
         """Main training loop."""
@@ -112,7 +122,12 @@ class Trainer:
         self.model.train()
         total_loss = 0.0
         num_batches = len(self.train_loader)
-
+        
+        # Check if data loader is empty
+        if num_batches == 0:
+            self.logger.warning("Training data loader is empty")
+            return 0.0
+        
         progress_bar = tqdm(
             self.train_loader,
             desc=f"Epoch {self.current_epoch + 1}",
@@ -188,7 +203,12 @@ class Trainer:
         total_loss = 0.0
         all_predictions = []
         all_targets = []
-
+        
+        # Check if validation data loader is empty
+        if len(self.val_loader) == 0:
+            self.logger.warning("Validation data loader is empty")
+            return 0.0, {}
+        
         with torch.no_grad():
             for batch in tqdm(self.val_loader, desc="Validation", leave=False):
                 # Move batch to device
