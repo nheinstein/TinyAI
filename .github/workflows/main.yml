@@ -1,0 +1,59 @@
+name: TinyAI CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libsndfile1
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 tinyai --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run LLM smoke test
+        run: |
+          python -m tinyai.train model=llm training.num_epochs=1 training.batch_size=2 data.num_examples=10
+
+      - name: Run Vision smoke test
+        run: |
+          python -m tinyai.train model=vision training.num_epochs=1 training.batch_size=2 data.num_examples=10
+
+      - name: Run Learning Rate Finder (LLM)
+        run: |
+          python scripts/find_lr.py
+
+      - name: Run Demo
+        run: |
+          python demo.py
+
+      # Optionally, check for linter errors in utils/lr_finder.py
+      - name: Check for linter errors in lr_finder.py
+        run: |
+          grep -i "Err |" tinyai/utils/lr_finder.py && exit 1 || exit 0
+        continue-on-error: true
