@@ -1,5 +1,9 @@
 name: TinyAI CI
 
+defaults:
+    run:
+      working-directory: ${{ github.workspace }}
+
 on:
   push:
     branches: [main]
@@ -30,6 +34,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
+
+      - name: Debug Python path and files
+        run: |
+          pwd
+          ls -l
+          ls -l tinyai
+          ls -l tinyai/models
+          python -c "import sys; print(sys.path)"
+          python -c "import tinyai; print(tinyai.__file__)"
 
       - name: Lint with flake8
         run: |
