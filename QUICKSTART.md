@@ -2,11 +2,11 @@
 
 This guide will help you get started with Tiny AI Model Trainer in just a few minutes.
 
-## 🚀 Installation
+## Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/nheinstein/TinyAI.git
    cd TinyAI
    ```
 
@@ -20,7 +20,7 @@ This guide will help you get started with Tiny AI Model Trainer in just a few mi
    pip install -e .
    ```
 
-## 🎯 Quick Demo
+##  Quick Demo
 
 Run the demo to see the trainer in action:
 
@@ -30,7 +30,7 @@ python demo.py
 
 This will train both an LLM and a vision model with synthetic data to demonstrate the functionality.
 
-## 📝 Basic Usage
+##  Basic Usage
 
 ### Train an LLM
 
@@ -58,7 +58,7 @@ python -m tinyai.train model=vision training.batch_size=32 training.num_epochs=2
 python -m tinyai.train model=vision logging.wandb=true logging.project_name=my-vision
 ```
 
-## ⚙️ Configuration
+##  Configuration
 
 The trainer uses Hydra for configuration management. You can:
 
@@ -74,7 +74,7 @@ The trainer uses Hydra for configuration management. You can:
 
 3. **Create your own configs** in the `configs/` directory
 
-## 📊 Experiment Tracking
+## Experiment Tracking
 
 Enable wandb logging for experiment tracking:
 
@@ -86,19 +86,19 @@ wandb login
 python -m tinyai.train logging.wandb=true logging.project_name=my-experiment
 ```
 
-## 🔧 Custom Models
+## Custom Models
 
 To use your own model:
 
 1. **Create a custom model class:**
    ```python
    from tinyai.models.base import BaseModel
-   
+
    class MyModel(BaseModel):
        def __init__(self, config, device=None):
            super().__init__(config, device)
            # Your model implementation
-           
+
        def forward(self, x):
            # Forward pass
            return output
@@ -112,7 +112,7 @@ To use your own model:
            return MyModel(config, device)
    ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 TinyAI/
@@ -131,7 +131,7 @@ TinyAI/
 └── requirements.txt      # Dependencies
 ```
 
-## 🎨 Examples
+##  Examples
 
 ### Example 1: Train a Small LLM
 
@@ -171,7 +171,7 @@ python -m tinyai.train \
     data.max_length=512
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -190,11 +190,11 @@ python -m tinyai.train \
 - Use the demo script to verify installation
 - Review the configuration files in `configs/`
 
-## 🚀 Next Steps
+## Next Steps
 
 1. **Read the full documentation** in `README.md`
 2. **Explore the configuration files** in `configs/`
 3. **Try the example scripts** in `scripts/`
 4. **Customize for your use case** by modifying configs or adding custom models
 
-Happy training! 🎉 
+Happy training!
