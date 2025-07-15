@@ -1,8 +1,5 @@
 name: TinyAI CI
 
-defaults:
-    run:
-      working-directory: ${{ github.workspace }}
 
 on:
   push:
