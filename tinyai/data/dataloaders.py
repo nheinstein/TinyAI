@@ -76,9 +76,6 @@ def _create_text_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
     # Ensure we don't drop all batches with small datasets
     drop_last = (split == "train") and len(dataset) > batch_size
     
-    # Log dataset information
-    print(f"Creating {split} data loader: dataset_size={len(dataset)}, batch_size={batch_size}, drop_last={drop_last}")
-    
     return DataLoader(
         dataset,
         batch_size=batch_size,
@@ -129,9 +126,6 @@ def _create_image_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
     
     # Ensure we don't drop all batches with small datasets
     drop_last = (split == "train") and len(dataset) > batch_size
-    
-    # Log dataset information
-    print(f"Creating {split} data loader: dataset_size={len(dataset)}, batch_size={batch_size}, drop_last={drop_last}")
     
     return DataLoader(
         dataset,

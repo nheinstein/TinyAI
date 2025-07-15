@@ -147,14 +147,21 @@ class Trainer:
                 labels = batch.pop('label', None)
 
             # Forward pass based on model type
-            if 'input_ids' in batch:
-                # LLM model
-                outputs = self.model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
-            elif 'image' in batch:
-                # Vision model
-                outputs = self.model(image=batch['image'])
+            # Check model type rather than just batch contents
+            if hasattr(self.model, '__class__') and 'LLM' in self.model.__class__.__name__:
+                # LLM model - expect input_ids and attention_mask
+                if 'input_ids' in batch and 'attention_mask' in batch:
+                    outputs = self.model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
+                else:
+                    raise ValueError(f"LLM model expects 'input_ids' and 'attention_mask' but got: {batch.keys()}")
+            elif hasattr(self.model, '__class__') and 'Vision' in self.model.__class__.__name__:
+                # Vision model - expect image
+                if 'image' in batch:
+                    outputs = self.model(image=batch['image'])
+                else:
+                    raise ValueError(f"Vision model expects 'image' but got: {batch.keys()}")
             else:
-                # Generic model call
+                # Generic model call - fallback for unknown models
                 outputs = self.model(**batch)
 
             # Compute loss
@@ -219,14 +226,21 @@ class Trainer:
                 labels = batch.pop('labels', None)
                 if labels is None:
                     labels = batch.pop('label', None)
-                if 'input_ids' in batch:
-                    # LLM model
-                    outputs = self.model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
-                elif 'image' in batch:
-                    # Vision model
-                    outputs = self.model(image=batch['image'])
+                # Check model type rather than just batch contents
+                if hasattr(self.model, '__class__') and 'LLM' in self.model.__class__.__name__:
+                    # LLM model - expect input_ids and attention_mask
+                    if 'input_ids' in batch and 'attention_mask' in batch:
+                        outputs = self.model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
+                    else:
+                        raise ValueError(f"LLM model expects 'input_ids' and 'attention_mask' but got: {batch.keys()}")
+                elif hasattr(self.model, '__class__') and 'Vision' in self.model.__class__.__name__:
+                    # Vision model - expect image
+                    if 'image' in batch:
+                        outputs = self.model(image=batch['image'])
+                    else:
+                        raise ValueError(f"Vision model expects 'image' but got: {batch.keys()}")
                 else:
-                    # Generic model call
+                    # Generic model call - fallback for unknown models
                     outputs = self.model(**batch)
 
                 # Compute loss
