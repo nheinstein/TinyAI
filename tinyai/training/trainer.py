@@ -67,6 +67,14 @@ class Trainer:
         # Log model info
         self.logger.info(f"Model parameters: {model.get_num_parameters():,}")
         self.logger.info(f"Trainable parameters: {model.get_trainable_parameters():,}")
+        if self.use_amp:
+            self.logger.info("Mixed precision training enabled")
+        else:
+            self.logger.info("Standard precision training")
+        if self.use_amp:
+            self.logger.info("Mixed precision training enabled")
+        else:
+            self.logger.info("Standard precision training")
     
     def train(self):
         """Main training loop."""

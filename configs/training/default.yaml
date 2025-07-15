@@ -22,6 +22,9 @@ gradient_clip: 1.0
 seed: 42
 device: "cuda"
 
+# Mixed precision training
+use_amp: true  # Enable automatic mixed precision
+
 # Logging
 log_interval: 100
 
