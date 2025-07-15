@@ -1,23 +1,22 @@
-# Tiny AI Model Trainer
+# Tiny AI
 
 A powerful CLI tool for training small Language Models (LLMs) and Vision models using custom YAML configurations for reproducible research.
 
 ## Features
 
-- 🚀 **Multi-Model Support**: Train both LLMs and Vision models
-- ⚙️ **Hydra Configuration**: YAML-based configs for reproducible experiments
-- 📊 **Experiment Tracking**: Integrated wandb logging and TensorBoard support
-- 🔧 **Modular Architecture**: Easy to extend and customize
-- 📈 **Rich Logging**: Beautiful CLI output with progress tracking
-- 🎯 **Reproducible Research**: Deterministic training with seed management
+-  **Multi-Model Support**: Train both LLMs and Vision models
+-  **Hydra Configuration**: YAML-based configs for reproducible experiments
+-  **Experiment Tracking**: Integrated wandb logging and TensorBoard support
+-  **Modular Architecture**: Easy to extend and customize
+-  **Rich Logging**: Beautiful CLI output with progress tracking
+-  **Reproducible Research**: Deterministic training with seed management
 
-## Quick Start
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/nheinstein/TinyAI.git
 cd TinyAI
 
 # Install dependencies
@@ -133,7 +132,7 @@ class CustomModel(BaseModel):
     def __init__(self, config):
         super().__init__(config)
         # Your model implementation
-        
+
     def forward(self, x):
         # Forward pass
         return output
@@ -149,14 +148,6 @@ class CustomTrainer(Trainer):
         pass
 ```
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
 ## License
 
-MIT License - see LICENSE file for details. 
+MIT License - see LICENSE file for details.
