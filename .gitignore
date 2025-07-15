@@ -136,6 +136,7 @@ runs/
 *.pt
 *.pth
 *.ckpt
+outputs/
 
 # IDE
 .vscode/
