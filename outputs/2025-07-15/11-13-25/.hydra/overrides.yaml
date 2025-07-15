@@ -1,0 +1,5 @@
+- model=vision
+- training.num_epochs=1
+- training.batch_size=2
+- data.num_examples=10
+- training.save_model=false
