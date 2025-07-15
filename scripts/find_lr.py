@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to find optimal learning rate using Tiny AI Model Trainer.
+Script to find optimal learning rate using Tiny AI.
 
 This script demonstrates how to use the learning rate finder
 to find optimal learning rates for your models.
@@ -25,7 +25,7 @@ def find_lr_for_llm():
     """Find optimal learning rate for LLM model."""
     print("🔍 Finding optimal learning rate for LLM model")
     print("=" * 50)
-    
+
     # Configuration
     config = {
         'model': {
@@ -51,27 +51,27 @@ def find_lr_for_llm():
             'level': 'INFO'
         }
     }
-    
+
     # Setup logging
     setup_logging(config['logging'])
     logger = get_logger(__name__)
-    
+
     # Get device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info(f"Using device: {device}")
-    
+
     # Create model
     logger.info("Creating LLM model...")
     model = get_model(config['model'], device=device)
-    
+
     # Create data loader
     logger.info("Creating data loader...")
     train_loader = get_data_loader(config['data'], split="train")
-    
+
     # Create optimizer
     logger.info("Creating optimizer...")
     optimizer = get_optimizer(model, config['training'])
-    
+
     # Find learning rate
     logger.info("Starting learning rate finder...")
     suggestions = find_lr(
@@ -85,7 +85,7 @@ def find_lr_for_llm():
         plot=True,
         save_plot="llm_lr_finder.png"
     )
-    
+
     print("✅ LLM Learning Rate Finder Completed!")
     print(f"Suggested learning rate: {suggestions['suggested_lr']:.2e}")
     print()
@@ -95,7 +95,7 @@ def find_lr_for_vision():
     """Find optimal learning rate for vision model."""
     print("🔍 Finding optimal learning rate for Vision model")
     print("=" * 50)
-    
+
     # Configuration
     config = {
         'model': {
@@ -120,27 +120,27 @@ def find_lr_for_vision():
             'level': 'INFO'
         }
     }
-    
+
     # Setup logging
     setup_logging(config['logging'])
     logger = get_logger(__name__)
-    
+
     # Get device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info(f"Using device: {device}")
-    
+
     # Create model
     logger.info("Creating vision model...")
     model = get_model(config['model'], device=device)
-    
+
     # Create data loader
     logger.info("Creating data loader...")
     train_loader = get_data_loader(config['data'], split="train")
-    
+
     # Create optimizer
     logger.info("Creating optimizer...")
     optimizer = get_optimizer(model, config['training'])
-    
+
     # Find learning rate
     logger.info("Starting learning rate finder...")
     suggestions = find_lr(
@@ -154,7 +154,7 @@ def find_lr_for_vision():
         plot=True,
         save_plot="vision_lr_finder.png"
     )
-    
+
     print("✅ Vision Learning Rate Finder Completed!")
     print(f"Suggested learning rate: {suggestions['suggested_lr']:.2e}")
     print()
@@ -165,14 +165,14 @@ def main():
     print("🎯 Learning Rate Finder Demo")
     print("=" * 60)
     print()
-    
+
     try:
         # Find LR for LLM
         find_lr_for_llm()
-        
+
         # Find LR for Vision
         find_lr_for_vision()
-        
+
         print("🎉 Learning rate finder completed successfully!")
         print()
         print("Generated plots:")
@@ -183,7 +183,7 @@ def main():
         print("1. Use the suggested learning rates in your training")
         print("2. Run: python -m tinyai.train training.learning_rate=<suggested_lr>")
         print("3. Experiment with different learning rate ranges")
-        
+
     except Exception as e:
         print(f"❌ Learning rate finder failed: {str(e)}")
         print("Make sure you have installed the dependencies:")
@@ -191,4 +191,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()

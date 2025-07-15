@@ -1,5 +1,5 @@
 """
-Data loader utilities for Tiny AI Model Trainer.
+Data loader utilities for Tiny AI.
 
 This module provides factory functions for creating data loaders
 for different types of datasets and models.
@@ -16,16 +16,16 @@ from .tokenizers import Tokenizer, SimpleTokenizer
 def get_data_loader(config: Dict[str, Any], split: str = "train") -> DataLoader:
     """
     Factory function to create a data loader based on configuration.
-    
+
     Args:
         config: Data configuration
         split: Dataset split ("train" or "val")
-        
+
     Returns:
         PyTorch DataLoader
     """
     data_type = config.get("type", "text").lower()
-    
+
     if data_type in ["text", "llm"]:
         return _create_text_dataloader(config, split)
     elif data_type in ["image", "vision"]:
@@ -37,11 +37,11 @@ def get_data_loader(config: Dict[str, Any], split: str = "train") -> DataLoader:
 def _create_text_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
     """
     Create a text data loader for language modeling.
-    
+
     Args:
         config: Data configuration
         split: Dataset split
-        
+
     Returns:
         DataLoader for text data
     """
@@ -50,7 +50,7 @@ def _create_text_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
         data_path = config.get("train_path")
     else:
         data_path = config.get("val_path")
-    
+
     # Use synthetic data if no path provided
     if not data_path:
         dataset = SimpleTextDataset(
@@ -61,7 +61,7 @@ def _create_text_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
     else:
         # Create tokenizer
         tokenizer = SimpleTokenizer(vocab_size=config.get("vocab_size", 1000))
-        
+
         # For simplicity, we'll use synthetic data for now
         # In a real implementation, you'd load and tokenize the actual text
         dataset = SimpleTextDataset(
@@ -69,7 +69,7 @@ def _create_text_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
             max_length=config.get("max_length", 128),
             vocab_size=config.get("vocab_size", 1000)
         )
-    
+
     # Create data loader
     return DataLoader(
         dataset,
@@ -84,11 +84,11 @@ def _create_text_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
 def _create_image_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
     """
     Create an image data loader for vision tasks.
-    
+
     Args:
         config: Data configuration
         split: Dataset split
-        
+
     Returns:
         DataLoader for image data
     """
@@ -97,7 +97,7 @@ def _create_image_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
         data_path = config.get("train_path")
     else:
         data_path = config.get("val_path")
-    
+
     # Use synthetic data if no path provided
     if not data_path:
         dataset = SimpleImageDataset(
@@ -108,14 +108,14 @@ def _create_image_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
     else:
         # Create image transformations
         transform = _get_image_transforms(config, split)
-        
+
         # Create dataset
         dataset = ImageDataset(
             data_path=data_path,
             transform=transform,
             label_file=config.get("label_file")
         )
-    
+
     # Create data loader
     return DataLoader(
         dataset,
@@ -130,18 +130,18 @@ def _create_image_dataloader(config: Dict[str, Any], split: str) -> DataLoader:
 def _get_image_transforms(config: Dict[str, Any], split: str):
     """
     Get image transformations for vision tasks.
-    
+
     Args:
         config: Data configuration
         split: Dataset split
-        
+
     Returns:
         Image transformations
     """
     from torchvision import transforms
-    
+
     image_size = config.get("image_size", 224)
-    
+
     if split == "train":
         # Training transforms with augmentation
         transform = transforms.Compose([
@@ -159,17 +159,17 @@ def _get_image_transforms(config: Dict[str, Any], split: str):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
-    
+
     return transform
 
 
 def collate_fn_text(batch):
     """
     Custom collate function for text data.
-    
+
     Args:
         batch: Batch of text examples
-        
+
     Returns:
         Collated batch
     """
@@ -177,14 +177,14 @@ def collate_fn_text(batch):
     input_ids = [item['input_ids'] for item in batch]
     attention_mask = [item['attention_mask'] for item in batch]
     labels = [item['labels'] for item in batch]
-    
+
     # Pad sequences
     max_length = max(len(ids) for ids in input_ids)
-    
+
     padded_input_ids = []
     padded_attention_mask = []
     padded_labels = []
-    
+
     for ids, mask, label in zip(input_ids, attention_mask, labels):
         # Pad input_ids
         if len(ids) < max_length:
@@ -192,11 +192,11 @@ def collate_fn_text(batch):
             ids = torch.cat([ids, torch.zeros(padding_length, dtype=ids.dtype)])
             mask = torch.cat([mask, torch.zeros(padding_length, dtype=mask.dtype)])
             label = torch.cat([label, torch.full((padding_length,), -100, dtype=label.dtype)])
-        
+
         padded_input_ids.append(ids)
         padded_attention_mask.append(mask)
         padded_labels.append(label)
-    
+
     return {
         'input_ids': torch.stack(padded_input_ids),
         'attention_mask': torch.stack(padded_attention_mask),
@@ -207,17 +207,17 @@ def collate_fn_text(batch):
 def collate_fn_image(batch):
     """
     Custom collate function for image data.
-    
+
     Args:
         batch: Batch of image examples
-        
+
     Returns:
         Collated batch
     """
     images = [item['image'] for item in batch]
     labels = [item['label'] for item in batch]
-    
+
     return {
         'image': torch.stack(images),
         'label': torch.stack(labels)
-    } 
+    }

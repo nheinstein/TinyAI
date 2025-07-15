@@ -1,5 +1,5 @@
 """
-Main trainer class for Tiny AI Model Trainer.
+Main trainer class for Tiny AI.
 
 This module provides the core training loop and utilities for
 training both LLMs and vision models.
@@ -21,11 +21,11 @@ from ..utils.metrics import MetricsTracker
 class Trainer:
     """
     Main trainer class for Tiny AI Model Trainer.
-    
+
     This class handles the training loop, validation, and logging
     for both LLMs and vision models.
     """
-    
+
     def __init__(
         self,
         model: nn.Module,
@@ -37,7 +37,7 @@ class Trainer:
     ):
         """
         Initialize the trainer.
-        
+
         Args:
             model: Model to train
             train_loader: Training data loader
@@ -52,21 +52,21 @@ class Trainer:
         self.config = config
         self.device = device
         self.metrics_tracker = metrics_tracker or MetricsTracker()
-        
+
         self.logger = get_logger(__name__)
-        
+
         # Initialize optimizer and scheduler
         self.optimizer = get_optimizer(model, config)
         self.scheduler = get_scheduler(self.optimizer, config)
-        
+
         # Training state
         self.current_epoch = 0
         self.global_step = 0
         self.best_val_loss = float('inf')
-        
+
         # Mixed precision training
         self.use_amp = config.get('use_amp', False)
-        
+
         # Log model info
         self.logger.info(f"Model parameters: {model.get_num_parameters():,}")
         self.logger.info(f"Trainable parameters: {model.get_trainable_parameters():,}")
@@ -74,55 +74,55 @@ class Trainer:
             self.logger.info("Mixed precision training enabled")
         else:
             self.logger.info("Standard precision training")
-    
+
     def train(self):
         """Main training loop."""
         self.logger.info("Starting training...")
-        
+
         for epoch in range(self.config.get('num_epochs', 10)):
             self.current_epoch = epoch
-            
+
             # Training phase
             train_loss = self._train_epoch()
-            
+
             # Validation phase
             val_loss, val_metrics = self._validate_epoch()
-            
+
             # Update learning rate
             if self.scheduler:
                 self.scheduler.step()
-            
+
             # Log metrics
             self._log_metrics(train_loss, val_loss, val_metrics)
-            
+
             # Save best model
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
                 if self.config.get('save_best', False):
                     self.save_model(self.config.get('best_model_path', 'best_model.pt'))
-            
+
             # Save checkpoint
             if self.config.get('save_checkpoints', False) and (epoch + 1) % self.config.get('checkpoint_interval', 1) == 0:
                 self.save_checkpoint(f"checkpoint_epoch_{epoch + 1}.pt")
-        
+
         self.logger.info("Training completed!")
-    
+
     def _train_epoch(self) -> float:
         """Train for one epoch."""
         self.model.train()
         total_loss = 0.0
         num_batches = len(self.train_loader)
-        
+
         progress_bar = tqdm(
             self.train_loader,
             desc=f"Epoch {self.current_epoch + 1}",
             leave=False
         )
-        
+
         for batch_idx, batch in enumerate(progress_bar):
             # Move batch to device
             batch = self._move_batch_to_device(batch)
-            
+
             # Forward pass
             self.optimizer.zero_grad()
 
@@ -130,7 +130,7 @@ class Trainer:
             labels = batch.pop('labels', None)
             if labels is None:
                 labels = batch.pop('label', None)
-            
+
             # Forward pass based on model type
             if 'input_ids' in batch:
                 # LLM model
@@ -141,7 +141,7 @@ class Trainer:
             else:
                 # Generic model call
                 outputs = self.model(**batch)
-            
+
             # Compute loss
             if hasattr(self.model, 'get_loss'):
                 loss = self.model.get_loss(outputs, labels)
@@ -151,27 +151,27 @@ class Trainer:
                     loss = nn.CrossEntropyLoss()(outputs, labels)
                 else:
                     loss = outputs.mean()  # Fallback
-            
+
             # Backward pass
             loss.backward()
-            
+
             # Gradient clipping
             if self.config.get('gradient_clip', 0) > 0:
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.get('gradient_clip', 1.0))
-            
+
             # Optimizer step
             self.optimizer.step()
-            
+
             # Update metrics
             total_loss += loss.item()
             self.global_step += 1
-            
+
             # Update progress bar
             progress_bar.set_postfix({
                 'loss': f"{loss.item():.4f}",
                 'lr': f"{self.optimizer.param_groups[0]['lr']:.6f}"
             })
-            
+
             # Log to wandb
             if wandb.run is not None and self.global_step % self.config.get('log_interval', 10) == 0:
                 wandb.log({
@@ -179,21 +179,21 @@ class Trainer:
                     'train/learning_rate': self.optimizer.param_groups[0]['lr'],
                     'train/step': self.global_step
                 })
-        
+
         return total_loss / num_batches
-    
+
     def _validate_epoch(self) -> tuple[float, Dict[str, float]]:
         """Validate for one epoch."""
         self.model.eval()
         total_loss = 0.0
         all_predictions = []
         all_targets = []
-        
+
         with torch.no_grad():
             for batch in tqdm(self.val_loader, desc="Validation", leave=False):
                 # Move batch to device
                 batch = self._move_batch_to_device(batch)
-                
+
                 # Forward pass
                 # Separate inputs from labels
                 labels = batch.pop('labels', None)
@@ -208,7 +208,7 @@ class Trainer:
                 else:
                     # Generic model call
                     outputs = self.model(**batch)
-                
+
                 # Compute loss
                 if hasattr(self.model, 'get_loss'):
                     loss = self.model.get_loss(outputs, labels)
@@ -217,9 +217,9 @@ class Trainer:
                         loss = nn.CrossEntropyLoss()(outputs, labels)
                     else:
                         loss = outputs.mean()
-                
+
                 total_loss += loss.item()
-                
+
                 # Collect predictions and targets for metrics
                 if labels is not None:
                     if hasattr(self.model, 'get_predictions'):
@@ -230,28 +230,28 @@ class Trainer:
                             predictions = torch.argmax(outputs, dim=-1)  # [batch, seq_len]
                         else:  # [batch, num_classes]
                             predictions = torch.argmax(outputs, dim=1)  # [batch]
-                    
+
                     all_predictions.append(predictions.cpu())
                     all_targets.append(labels.cpu())
-        
+
         # Compute metrics
         val_loss = total_loss / len(self.val_loader)
         metrics = {}
-        
+
         if all_predictions and all_targets:
             all_predictions = torch.cat(all_predictions)
             all_targets = torch.cat(all_targets)
-            
+
             # Compute accuracy
             accuracy = (all_predictions == all_targets).float().mean().item()
             metrics['accuracy'] = accuracy
-        
+
         return val_loss, metrics
-    
+
     def _move_batch_to_device(self, batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """Move batch tensors to device."""
         return {k: v.to(self.device) if isinstance(v, torch.Tensor) else v for k, v in batch.items()}
-    
+
     def _log_metrics(self, train_loss: float, val_loss: float, val_metrics: Dict[str, float]):
         """Log training and validation metrics."""
         # Log to console
@@ -260,11 +260,11 @@ class Trainer:
             f"Train Loss: {train_loss:.4f}, "
             f"Val Loss: {val_loss:.4f}"
         )
-        
+
         if val_metrics:
             for metric_name, metric_value in val_metrics.items():
                 self.logger.info(f"  {metric_name}: {metric_value:.4f}")
-        
+
         # Log to wandb
         if wandb.run is not None:
             log_dict = {
@@ -274,7 +274,7 @@ class Trainer:
             }
             log_dict.update({f'val/{k}': v for k, v in val_metrics.items()})
             wandb.log(log_dict)
-    
+
     def save_model(self, path: str):
         """Save the model to disk."""
         if hasattr(self.model, 'save'):
@@ -288,9 +288,9 @@ class Trainer:
                 'global_step': self.global_step,
                 'best_val_loss': self.best_val_loss,
             }, path)
-        
+
         self.logger.info(f"Model saved to: {path}")
-    
+
     def save_checkpoint(self, path: str):
         """Save a training checkpoint."""
         checkpoint = {
@@ -302,23 +302,23 @@ class Trainer:
             'global_step': self.global_step,
             'best_val_loss': self.best_val_loss,
         }
-        
+
         torch.save(checkpoint, path)
         self.logger.info(f"Checkpoint saved to: {path}")
-    
+
     def load_checkpoint(self, path: str):
         """Load a training checkpoint."""
         checkpoint = torch.load(path, map_location=self.device)
-        
+
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        
+
         if self.scheduler and checkpoint['scheduler_state_dict']:
             self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        
+
         self.current_epoch = checkpoint['epoch']
         self.global_step = checkpoint['global_step']
         self.best_val_loss = checkpoint['best_val_loss']
-        
+
         self.logger.info(f"Checkpoint loaded from: {path}")
-        self.logger.info(f"Resuming from epoch {self.current_epoch + 1}, step {self.global_step}") 
+        self.logger.info(f"Resuming from epoch {self.current_epoch + 1}, step {self.global_step}")

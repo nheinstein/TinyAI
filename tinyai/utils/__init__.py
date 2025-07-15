@@ -1,7 +1,7 @@
 
 
 """
-Utility functions for Tiny AI Model Trainer.
+Utility functions for Tiny AI.
 
 This module provides logging, metrics, and other utility functions
 used throughout the training pipeline.

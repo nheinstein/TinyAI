@@ -1,5 +1,5 @@
 """
-Optimizer and scheduler utilities for Tiny AI Model Trainer.
+Optimizer and scheduler utilities for Tiny AI.
 
 This module provides factory functions for creating optimizers
 and learning rate schedulers.
@@ -14,18 +14,18 @@ from typing import Dict, Any
 def get_optimizer(model: torch.nn.Module, config: Dict[str, Any]) -> torch.optim.Optimizer:
     """
     Create an optimizer based on configuration.
-    
+
     Args:
         model: Model to optimize
         config: Training configuration
-        
+
     Returns:
         PyTorch optimizer
     """
     optimizer_type = config.get("optimizer", "adam").lower()
     learning_rate = config.get("learning_rate", 1e-4)
     weight_decay = config.get("weight_decay", 0.0)
-    
+
     if optimizer_type == "adam":
         return optim.Adam(
             model.parameters(),
@@ -61,16 +61,16 @@ def get_optimizer(model: torch.nn.Module, config: Dict[str, Any]) -> torch.optim
 def get_scheduler(optimizer: torch.optim.Optimizer, config: Dict[str, Any]) -> torch.optim.lr_scheduler._LRScheduler:
     """
     Create a learning rate scheduler based on configuration.
-    
+
     Args:
         optimizer: Optimizer to schedule
         config: Training configuration
-        
+
     Returns:
         PyTorch learning rate scheduler
     """
     scheduler_type = config.get("scheduler", "none").lower()
-    
+
     if scheduler_type == "none":
         return None
     elif scheduler_type == "step":
@@ -105,15 +105,15 @@ def get_scheduler(optimizer: torch.optim.Optimizer, config: Dict[str, Any]) -> t
 class WarmupCosineScheduler(LambdaLR):
     """
     Learning rate scheduler with warmup and cosine decay.
-    
+
     This scheduler linearly increases the learning rate from 0 to the base
     learning rate during warmup, then decays it following a cosine curve.
     """
-    
+
     def __init__(self, optimizer, warmup_steps: int, total_steps: int, min_lr: float = 0.0):
         """
         Initialize the warmup cosine scheduler.
-        
+
         Args:
             optimizer: Optimizer to schedule
             warmup_steps: Number of warmup steps
@@ -123,7 +123,7 @@ class WarmupCosineScheduler(LambdaLR):
         self.warmup_steps = warmup_steps
         self.total_steps = total_steps
         self.min_lr = min_lr
-        
+
         def lr_lambda(step):
             if step < warmup_steps:
                 # Linear warmup
@@ -132,22 +132,22 @@ class WarmupCosineScheduler(LambdaLR):
                 # Cosine decay
                 progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
                 return max(min_lr, 0.5 * (1.0 + torch.cos(torch.pi * progress)))
-        
+
         super().__init__(optimizer, lr_lambda)
 
 
 class WarmupLinearScheduler(LambdaLR):
     """
     Learning rate scheduler with warmup and linear decay.
-    
+
     This scheduler linearly increases the learning rate from 0 to the base
     learning rate during warmup, then linearly decays it to 0.
     """
-    
+
     def __init__(self, optimizer, warmup_steps: int, total_steps: int):
         """
         Initialize the warmup linear scheduler.
-        
+
         Args:
             optimizer: Optimizer to schedule
             warmup_steps: Number of warmup steps
@@ -155,7 +155,7 @@ class WarmupLinearScheduler(LambdaLR):
         """
         self.warmup_steps = warmup_steps
         self.total_steps = total_steps
-        
+
         def lr_lambda(step):
             if step < warmup_steps:
                 # Linear warmup
@@ -164,5 +164,5 @@ class WarmupLinearScheduler(LambdaLR):
                 # Linear decay
                 progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
                 return max(0.0, 1.0 - progress)
-        
-        super().__init__(optimizer, lr_lambda) 
+
+        super().__init__(optimizer, lr_lambda)

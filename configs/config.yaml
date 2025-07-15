@@ -1,4 +1,4 @@
-# Main configuration file for Tiny AI Model Trainer
+# Main configuration file for Tiny AI
 # This file defines the default configuration and references other config files
 
 defaults:
@@ -7,7 +7,6 @@ defaults:
   - data: default
   - logging: default
   - _self_
-
 # Override any configuration here
 # model:
 #   type: "vision"
@@ -19,4 +18,4 @@ defaults:
 
 # logging:
 #   wandb: true
-#   project_name: "tiny-ai-experiment" 
+#   project_name: "tiny-ai-experiment"

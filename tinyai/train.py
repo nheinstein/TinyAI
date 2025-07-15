@@ -1,5 +1,5 @@
 """
-Main training script for Tiny AI Model Trainer.
+Main training script for Tiny AI.
 
 This module provides the CLI interface and orchestrates the training process
 using Hydra for configuration management.
@@ -27,17 +27,17 @@ from .utils.metrics import MetricsTracker
 def main(cfg: DictConfig) -> None:
     """
     Main training function with Hydra configuration.
-    
+
     Args:
         cfg: Hydra configuration object
     """
     # Setup logging
     setup_logging(cfg.logging)
     logger = get_logger(__name__)
-    
+
     logger.info("🚀 Starting Tiny AI Model Trainer")
     logger.info(f"Configuration:\n{OmegaConf.to_yaml(cfg)}")
-    
+
     # Set random seeds for reproducibility
     if cfg.training.seed is not None:
         torch.manual_seed(cfg.training.seed)
@@ -45,7 +45,7 @@ def main(cfg: DictConfig) -> None:
             torch.cuda.manual_seed(cfg.training.seed)
             torch.cuda.manual_seed_all(cfg.training.seed)
         logger.info(f"Set random seed to {cfg.training.seed}")
-    
+
     # Initialize wandb if enabled
     if cfg.logging.wandb:
         wandb.init(
@@ -55,27 +55,27 @@ def main(cfg: DictConfig) -> None:
             tags=cfg.logging.tags if hasattr(cfg.logging, 'tags') else None,
         )
         logger.info(f"Initialized wandb run: {wandb.run.name}")
-    
+
     try:
         # Get device
         device = torch.device(cfg.training.device if torch.cuda.is_available() else "cpu")
         logger.info(f"Using device: {device}")
-        
+
         # Initialize model
         logger.info("📦 Initializing model...")
         model = get_model(cfg.model, device=device)
         logger.info(f"Model initialized: {model.__class__.__name__}")
-        
+
         # Get data loaders
         logger.info("📊 Setting up data loaders...")
         train_loader = get_data_loader(cfg.data, split="train")
         val_loader = get_data_loader(cfg.data, split="val")
         logger.info(f"Train samples: {len(train_loader.dataset)}")
         logger.info(f"Val samples: {len(val_loader.dataset)}")
-        
+
         # Initialize metrics tracker
         metrics_tracker = MetricsTracker()
-        
+
         # Initialize trainer
         logger.info("🏋️ Initializing trainer...")
         trainer = Trainer(
@@ -86,20 +86,20 @@ def main(cfg: DictConfig) -> None:
             device=device,
             metrics_tracker=metrics_tracker,
         )
-        
+
         # Start training
         logger.info("🎯 Starting training...")
         trainer.train()
-        
+
         # Save final model
         if cfg.training.save_model:
             save_path = Path(cfg.training.save_path)
             save_path.parent.mkdir(parents=True, exist_ok=True)
             trainer.save_model(save_path)
             logger.info(f"Model saved to: {save_path}")
-        
+
         logger.info("✅ Training completed successfully!")
-        
+
     except Exception as e:
         logger.error(f"❌ Training failed: {str(e)}")
         raise
@@ -109,4 +109,4 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    main() 
+    main()

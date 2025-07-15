@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to train a vision model with Tiny AI Model Trainer.
+Script to train a vision model with Tiny AI.
 
 This script demonstrates how to train a vision model
 with custom configuration overrides.
@@ -21,7 +21,7 @@ from tinyai.train import main
 def train_vision(cfg: DictConfig):
     """
     Train a vision model with custom configuration.
-    
+
     Args:
         cfg: Hydra configuration
     """
@@ -30,25 +30,25 @@ def train_vision(cfg: DictConfig):
     cfg.model.num_classes = 10
     cfg.model.hidden_size = 64
     cfg.model.num_blocks = [2, 2, 2, 2]  # ResNet-18 style
-    
+
     cfg.training.num_epochs = 5
     cfg.training.batch_size = 32
     cfg.training.learning_rate = 1e-3
-    
+
     cfg.data.type = "image"
     cfg.data.num_examples = 1000  # Use synthetic data
     cfg.data.image_size = 224
-    
+
     cfg.logging.wandb = True
     cfg.logging.project_name = "tiny-vision-demo"
     cfg.logging.run_name = "vision-training"
-    
+
     print("Configuration:")
     print(OmegaConf.to_yaml(cfg))
-    
+
     # Start training
     main(cfg)
 
 
 if __name__ == "__main__":
-    train_vision() 
+    train_vision()
