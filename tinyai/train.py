@@ -62,13 +62,13 @@ def main(cfg: DictConfig) -> None:
         logger.info(f"Using device: {device}")
 
         # Initialize model
-        logger.info("📦 Initializing model...")
+        logger.info("Initializing model...")
         model = get_model(cfg.model, device=device)
         logger.info(f"Model initialized: {model.__class__.__name__}")
 
         # Get data loaders
-        logger.info("📊 Setting up data loaders...")
-        
+        logger.info("Setting up data loaders...")
+
         # Auto-configure data type based on model type
         data_config = OmegaConf.to_container(cfg.data, resolve=True)
         if cfg.model.type.lower() in ["vision", "cnn", "resnet"]:
@@ -87,12 +87,12 @@ def main(cfg: DictConfig) -> None:
             if hasattr(cfg.model, 'max_length'):
                 data_config["max_length"] = cfg.model.max_length
             logger.info("Auto-configured data type to 'text' for LLM model")
-        
+
         # Copy training parameters to data config
         data_config["batch_size"] = cfg.training.batch_size
         if hasattr(cfg.training, 'num_workers'):
             data_config["num_workers"] = cfg.training.num_workers
-        
+
         train_loader = get_data_loader(data_config, split="train")
         val_loader = get_data_loader(data_config, split="val")
         logger.info(f"Train samples: {len(train_loader.dataset)}")
@@ -102,7 +102,7 @@ def main(cfg: DictConfig) -> None:
         metrics_tracker = MetricsTracker()
 
         # Initialize trainer
-        logger.info("🏋️ Initializing trainer...")
+        logger.info("Initializing trainer...")
         trainer = Trainer(
             model=model,
             train_loader=train_loader,
@@ -113,7 +113,7 @@ def main(cfg: DictConfig) -> None:
         )
 
         # Start training
-        logger.info("🎯 Starting training...")
+        logger.info("Starting training...")
         trainer.train()
 
         # Save final model
@@ -123,7 +123,7 @@ def main(cfg: DictConfig) -> None:
             trainer.save_model(save_path)
             logger.info(f"Model saved to: {save_path}")
 
-        logger.info("✅ Training completed successfully!")
+        logger.info("Training completed successfully!")
 
     except Exception as e:
         logger.error(f"❌ Training failed: {str(e)}")
